@@ -45,8 +45,10 @@
   programs.bash.interactiveShellInit =
     # bash
     ''
+      # TODO
+      # eval "$SHELL_INIT"
       cd host/
       claude
-      poweroff  # this is probably annoying
+      poweroff
     '';
 }

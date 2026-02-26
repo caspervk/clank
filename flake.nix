@@ -40,11 +40,10 @@
           "--volume /proc/sys:/proc/sys:rw"
           # TODO
           "--volume \"$HOME/.local/share/containers/storage\":/var/lib/shared:ro"
-          # TODO: doesn't work actually
-          # https://github.com/anthropics/claude-code/issues/24317
-          "--volume \"$HOME/.claude/.credentials.json\":/run/secrets/claude-credentials.json:ro"
           # Mount current directory to /host/
           "--volume ./:/root/host:rw"
+          # TODO
+          "--env SHELL_INIT"
           # https://discourse.nixos.org/t/running-nix-os-containers-directly-from-the-store-with-podman/29220
           # https://github.com/metaspace/container-nixos/tree/main
           "--volume /nix/store:/nix/store:ro"
