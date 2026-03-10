@@ -1,10 +1,10 @@
-# f
+# clank
 
 ## Try
 
 ```sh
-nix run git+https://git.caspervk.net/caspervk/f.git -- claude setup-token
-nix run git+https://git.caspervk.net/caspervk/f.git -- CLAUDE_CODE_OAUTH_TOKEN=hunter2 claude
+nix run git+https://git.caspervk.net/caspervk/clank.git -- claude setup-token
+nix run git+https://git.caspervk.net/caspervk/clank.git -- CLAUDE_CODE_OAUTH_TOKEN=hunter2 claude
 ```
 
 ## Install
@@ -12,8 +12,8 @@ nix run git+https://git.caspervk.net/caspervk/f.git -- CLAUDE_CODE_OAUTH_TOKEN=h
 ```nix
 {
   inputs = {
-    f = {
-      url = "git+https://git.caspervk.net/caspervk/f.git";
+    clank = {
+      url = "git+https://git.caspervk.net/caspervk/clank.git";
       # inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -21,9 +21,9 @@ nix run git+https://git.caspervk.net/caspervk/f.git -- CLAUDE_CODE_OAUTH_TOKEN=h
 ```
 
 ```nix
-{f, pkgs}: {
+{clank, pkgs}: {
   environment.systemPackages = [
-    f.packages.${pkgs.system}.app
+    clank.packages.${pkgs.system}.app
   ];
 }
 ```
@@ -31,5 +31,5 @@ nix run git+https://git.caspervk.net/caspervk/f.git -- CLAUDE_CODE_OAUTH_TOKEN=h
 ### Run
 
 ```sh
-f
+clank
 ```

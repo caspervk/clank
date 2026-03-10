@@ -39,7 +39,7 @@
         };
       in
         pkgs.writeShellApplication {
-          name = "f";
+          name = "clank";
           runtimeInputs = [
             pkgs.podman
           ];
