@@ -67,7 +67,7 @@
             "--mount=type=tmpfs,tmpfs-size=512M,destination=/run"
             "--mount=type=tmpfs,tmpfs-size=512M,destination=/run/wrappers,suid"
             "--systemd=always"
-            "--rootfs /var/empty:O"
+            "--rootfs ${pkgs.emptyDirectory}:O"
             "${entrypoint}/bin/entrypoint"
             "\"$@\""
           ];
