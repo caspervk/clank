@@ -34,6 +34,10 @@
       permissions = {
         defaultMode = "bypassPermissions"; # yolo
       };
+      # Load AGENTS.md instead of claude.md
+      customInstructions = {
+        files = ["AGENTS.md"];
+      };
     });
   in [
     "C /root/.claude.json 0600 root root - ${claudeState}"
