@@ -2,6 +2,7 @@
   imports = [
     ./claude.nix
     ./hardware.nix
+    ./home-manager.nix
     ./nix.nix
     ./opencode.nix
     ./podman.nix

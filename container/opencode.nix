@@ -1,31 +1,23 @@
-{
-  lib,
-  pkgs,
-  vars,
-  ...
-}: {
-  environment.systemPackages = [
-    pkgs.opencode
-  ];
+{lib, vars, ...}: {
+  home-manager.users.root = {
+    programs.opencode = {
+      enable = true;
+      context = vars.AGENTS_md;
+      # https://opencode.ai/docs/config
+      settings = {
+        autoupdate = false;
+        # By default, OpenCode isn't allowed to read .env files, and has to ask
+        # permission to do anything outside the working directory.
+        permission = "allow";
+      };
+    };
+  };
 
   environment.variables = {
     # Enable Exa web search tools
     # https://opencode.ai/docs/tools/#websearch
     OPENCODE_ENABLE_EXA = lib.mkDefault "1";
   };
-
-  # https://opencode.ai/docs/config
-  systemd.tmpfiles.rules = let
-    opencodeJson = pkgs.writeText "opencode.json" (builtins.toJSON {
-      autoupdate = false;
-      # By default, OpenCode isn't allowed to read .env files, and has to ask
-      # permission to do anything outside the working directory.
-      permission = "allow";
-    });
-  in [
-    "L+ /root/.config/opencode/AGENTS.md - - - - ${vars.AGENTS_md}"
-    "L+ /root/.config/opencode/opencode.json - - - - ${opencodeJson}"
-  ];
 
   fileSystems."/root/.local/share/opencode" = {
     device = "/persist/root/.local/share/opencode";

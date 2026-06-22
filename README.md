@@ -35,14 +35,15 @@ vibes going by running [`opencode`](https://opencode.ai) or
 
 ## 📦 Install Clank
 
-#### NixOS
+### NixOS
 
 ```nix
 {
   inputs = {
     clank = {
       url = "github:magenta-aps/clank";
-      # inputs.nixpkgs.follows = "nixpkgs";
+      # inputs.nixpkgs.follows = "nixpkgs-unstable";
+      # inputs.home-manager.follows = "home-manager-unstable";
     };
   };
 }
@@ -56,13 +57,73 @@ vibes going by running [`opencode`](https://opencode.ai) or
 }
 ```
 
-#### Everything Else
+### Everything Else
 
 ```sh
 alias clank='nix run github:magenta-aps/clank --'
 ```
 
-## 🔐 Credentials Proxy
+## ⚙️ Customising Clank
+
+### NixOS
+
+```nix
+{inputs, pkgs, ...}: {
+  environment.systemPackages = [
+    (inputs.clank.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+      extraModules = [
+        ({pkgs, ...}: {
+          home-manager.users.root = {
+            # https://search.nixos.org/options?channel=unstable&query=programs.opencode&source=home_manager
+            programs.opencode = {
+              context = "Call me Alice";
+            };
+            # https://search.nixos.org/options?channel=unstable&query=programs.claude-code&source=home_manager
+            programs.claude-code = {
+              context = "Call me Bob";
+            };
+          };
+        })
+      ];
+    })
+  ];
+}
+```
+
+### Everything Else
+
+`.config/clank/config/flake.nix`:
+
+```nix
+{
+  outputs = {...}: {
+    nixosModules.clank = {pkgs, ...}: {
+      home-manager.users.root = {
+        # https://search.nixos.org/options?channel=unstable&query=programs.opencode&source=home_manager
+        programs.opencode = {
+          context = "Call me Alice";
+        };
+        # https://search.nixos.org/options?channel=unstable&query=programs.claude-code&source=home_manager
+        programs.claude-code = {
+          context = "Call me Bob";
+        };
+      };
+    };
+  };
+}
+```
+
+```sh
+nix run github:magenta-aps/clank --override-input config ~/.config/clank/config/
+```
+
+or
+
+```sh
+alias clank='nix run github:magenta-aps/clank --override-input config ~/.config/clank/config/ --'
+```
+
+### 🔐 Credentials Proxy
 
 Giving AI access to secrets is certainly one of the ideas ever. Fortunately, we
 can keep secrets out of the sandbox container by configuring the harness to use
@@ -80,99 +141,101 @@ dummy credentials and a credentials-injecting proxy.
 └─────────────────────────────────┘
 ```
 
-First, configure _OpenCode_ or _Claude Code_ to use the proxy. See the
-[OpenCode documentation](https://opencode.ai/docs/providers) for a list of
-supported providers. Base URLs can be found at <https://models.dev/api.json>.
-Some providers use a custom SDK, in which case they are documented at
+First, configure OpenCode or Claude Code to use the proxy. See the [OpenCode
+documentation](https://opencode.ai/docs/providers) for a list of supported
+providers. Base URLs can be found at <https://models.dev/api.json>. Some
+providers use a custom SDK, in which case they are documented at
 <https://ai-sdk.dev/providers/ai-sdk-providers>.
 
-`~/.config/clank/opencode.json`:
-
-```json
+```nix
 {
-  "provider": {
-    "deepseek": {
-      "options": {
-        "baseURL": "http://clank-proxy:8000"
-      }
-    },
-    "google": {
-      "options": {
-        "apiKey": "dummy",
-        "baseURL": "http://clank-proxy:8001/v1beta"
-      }
-    },
-    "mistral": {
-      "options": {
-        "apiKey": "dummy",
-        "baseURL": "http://clank-proxy:8002/v1"
-      }
-    },
-    "scaleway": {
-      "options": {
-        "baseURL": "http://clank-proxy:8003/v1"
-      }
-    },
-    "zai": {
-      "options": {
-        "baseURL": "http://clank-proxy:8004/api/paas/v4"
-      }
-    }
-  }
-}
-```
-
-`~/.config/clank/claude.json`:
-
-```json
-{
-  "env": {
-    "CLAUDE_CODE_OAUTH_TOKEN": "dummy",
-    "ANTHROPIC_BASE_URL": "http://clank-proxy:666"
-  }
+  home-manager.users.root = {
+    programs.opencode = {
+      settings = {
+        provider = {
+          deepseek = {
+            options = {
+              baseURL = "http://clank-proxy:1600";
+            };
+          };
+          google = {
+            options = {
+              apiKey = "dummy";
+              baseURL = "http://clank-proxy:1601/v1beta";
+            };
+          };
+          mistral = {
+            options = {
+              apiKey = "dummy";
+              baseURL = "http://clank-proxy:1602/v1";
+            };
+          };
+          scaleway = {
+            options = {
+              baseURL = "http://clank-proxy:1603/v1";
+            };
+          };
+          zai = {
+            options = {
+              baseURL = "http://clank-proxy:1604/api/paas/v4";
+            };
+          };
+        };
+      };
+    };
+    programs.claude-code = {
+      settings = {
+        env = {
+          CLAUDE_CODE_OAUTH_TOKEN = "dummy";
+          ANTHROPIC_BASE_URL = "http://clank-proxy:1666";
+        };
+      };
+    };
+  };
 }
 ```
 
 Then, configure the [Caddy](https://caddyserver.com) proxy with the actual
-credentials. API keys are
-[here](https://vault.bitwarden.com/#/vault?itemId=c9b60efc-e0b3-4a7a-a3d7-b43500d29310)
-if you work at Magenta.
+credentials.
 
 `~/.config/clank/Caddyfile`:
 
 ```Caddy
-:8000 {
+# API keys are here if you work at Magenta:
+# https://vault.bitwarden.com/#/vault?itemId=c9b60efc-e0b3-4a7a-a3d7-b43500d29310
+
+:1600 {
 	reverse_proxy https://api.deepseek.com {
 		header_up Authorization "Bearer <token>"  # https://platform.deepseek.com/api_keys
 	}
 }
 
-:8001 {
+:1601 {
 	reverse_proxy https://generativelanguage.googleapis.com {
 		header_up X-Goog-Api-Key "<token>"
 	}
 }
 
-:8002 {
+:1602 {
 	reverse_proxy https://api.mistral.ai {
-		header_up Authorization "Bearer <token>"  # https://console.mistral.ai/codestral/cli
+		header_up Authorization "Bearer <token>"  # https://console.mistral.ai/?profile_dialog=api-keys
 	}
 }
 
-:8003 {
-	rewrite * /594a268d-8577-4b86-a983-be375e13e197{uri}  # project id
+:1603 {
+	rewrite * /594a268d-8577-4b86-a983-be375e13e197{uri}  # Magenta's project id
 	reverse_proxy https://api.scaleway.ai {
 		header_up Authorization "Bearer <token>"
 	}
 }
 
-:8004 {
+:1604 {
 	reverse_proxy https://api.z.ai {
 		header_up Authorization "Bearer <token>"  # https://z.ai/manage-apikey/apikey-list
 	}
 }
 
-:666 {
+:1666 {
 	reverse_proxy https://api.anthropic.com {
 		header_up Authorization "Bearer <token>"  # `claude setup-token`
 	}

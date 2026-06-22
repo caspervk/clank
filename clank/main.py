@@ -66,25 +66,17 @@ def main(tmp: Path) -> None:
     home = Path.home()
 
     # Mount host's git config to ensure commits are done by the right author
-    if (file := home.joinpath(".config/git")).exists():
+    if (git_config := home.joinpath(".config/git")).exists():
         command += [
-            f"--volume={file}:/root/.config/git:ro",
+            f"--volume={git_config}:/root/.config/git:ro",
         ]
 
     # We can use the host's images if it also uses Podman
-    if (file := home.joinpath(".local/share/containers/storage")).exists():
+    if (storage := home.joinpath(".local/share/containers/storage")).exists():
         command += [
-            f"--volume={file}:/var/lib/shared:ro",
-        ]
-
-    # Custom OpenCode and Claude Code config
-    if (file := home.joinpath(".config/clank/opencode.json")).exists():
-        command += [
-            f"--volume={file}:/root/.config/opencode/opencode.json:ro",
-        ]
-    if (file := home.joinpath(".config/clank/claude.json")).exists():
-        command += [
-            f"--volume={file}:/etc/claude-code/managed-settings.json:ro",
+            f"--volume={storage}/overlay:/var/lib/shared/overlay:ro",
+            f"--volume={storage}/overlay-images:/var/lib/shared/overlay-images:ro",
+            f"--volume={storage}/overlay-layers:/var/lib/shared/overlay-layers:ro",
         ]
 
     # Whatever extra arguments were given on the command line are run in the
@@ -116,8 +108,8 @@ def main(tmp: Path) -> None:
     ]
 
     # Start the credentials proxy
-    if (file := home.joinpath(".config/clank/Caddyfile")).exists():
-        subprocess.run([CLANK_CADDY_BIN, "validate", "--config", file], check=True)
+    if (caddyfile := home.joinpath(".config/clank/Caddyfile")).exists():
+        subprocess.run([CLANK_CADDY_BIN, "validate", "--config", caddyfile], check=True)
         subprocess.run(
             [
                 "podman",
@@ -128,7 +120,7 @@ def main(tmp: Path) -> None:
                 f"--network={identifier}",
                 "--network-alias=clank-proxy",
                 "--volume=/nix/store:/nix/store:ro",
-                f"--volume={file}:/Caddyfile:ro",
+                f"--volume={caddyfile}:/Caddyfile:ro",
                 "--rootfs",
                 f"{CLANK_EMPTY_DIRECTORY}:O",
                 CLANK_CADDY_BIN,
