@@ -59,15 +59,15 @@ def main(tmp: Path) -> None:
     home = Path.home()
 
     # Mount host's git config to ensure commits are done by the right author
-    if home.joinpath(".config/git").exists():
+    if (file := home.joinpath(".config/git")).exists():
         command += [
-            f"--volume={home}/.config/git:/root/.config/git:ro",
+            f"--volume={file}:/root/.config/git:ro",
         ]
 
     # We can use the host's images if it also uses Podman
-    if home.joinpath(".local/share/containers/storage").exists():
+    if (file := home.joinpath(".local/share/containers/storage")).exists():
         command += [
-            f"--volume={home}/.local/share/containers/storage:/var/lib/shared:ro",
+            f"--volume={file}:/var/lib/shared:ro",
         ]
 
     # Whatever extra arguments were given on the command line are run in the
