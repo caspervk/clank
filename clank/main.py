@@ -70,14 +70,6 @@ def main(tmp: Path) -> None:
             f"--volume={home}/.local/share/containers/storage:/var/lib/shared:ro",
         ]
 
-    # ~/.config/clank.sh is how we inject environment variables into the
-    # container since all --env are gobbled by systemd (/init). You could also
-    # use it to run arbitrary commands on startup.
-    if home.joinpath(".config/clank.sh").exists():
-        command += [
-            f"--volume={home}/.config/clank.sh:/clank/clank.sh:ro",
-        ]
-
     # Whatever extra arguments were given on the command line are run in the
     # container, e.g. `clank opencode --model=berget/moonshotai/Kimi-K3`. We
     # have to do it in this roundabout way because the command argument to

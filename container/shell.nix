@@ -18,10 +18,6 @@
     loginShellInit =
       # fish
       ''
-        # Load environment variables mounted from the host's ~/.config/clank.sh
-        if test -s /clank/clank.sh
-          source /clank/clank.sh
-        end
         # Enter the mounted host directory
         cd (cat /clank/cwd)
         # Run command if given as extra arguments on the command line.

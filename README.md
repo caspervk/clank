@@ -81,11 +81,6 @@ Anthropic doesn't allow using OpenCode with a Claude subscription, so we have
 to use Claude Code. Open `claude` and then `/login` using `Claude account with
 subscription` - make sure to `Continue with email`, _not_ Google.
 
-Due to a [bug](https://github.com/anthropics/claude-code/issues/24317), you
-can't use regular `/login` if you want to use multiple concurrent Claude Code
-sessions. In this case, run `claude setup-token` and add the resulting token to
-`~/.config/clank.sh` (on the host):
-
 ```sh
 export CLAUDE_CODE_OAUTH_TOKEN='<your-access-token-here>'
 ```
@@ -108,7 +103,6 @@ nix run ~/clank
 ## 🗑️ Remove All State
 
 ```sh
-rm ~/.config/clank.sh
 nix run nixpkgs#podman -- rm --force --filter 'name=^clank'
 nix run nixpkgs#podman -- volume rm clank-persist
 ```
