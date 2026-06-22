@@ -74,7 +74,7 @@ def main(tmp: Path) -> None:
         ]
 
     # Whatever extra arguments were given on the command line are run in the
-    # container, e.g. `clank opencode --model=scaleway/qwen3.5-397b-a17b`. We
+    # container, e.g. `clank opencode --model=berget/moonshotai/Kimi-K3`. We
     # have to do it in this roundabout way because the command argument to
     # `podman run` has to be systemd (/init).
     tmp.joinpath("command").write_text(shlex.join(sys.argv[1:]))

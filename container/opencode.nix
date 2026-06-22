@@ -17,14 +17,6 @@
   systemd.tmpfiles.rules = let
     opencodeJson = pkgs.writeText "opencode.json" (builtins.toJSON {
       autoupdate = false;
-      provider = {
-        scaleway = {
-          options = {
-            # Magenta's "AI" Scaleway project
-            baseURL = "https://api.scaleway.ai/594a268d-8577-4b86-a983-be375e13e197/v1";
-          };
-        };
-      };
       # By default, OpenCode isn't allowed to read .env files, and has to ask
       # permission to do anything outside the working directory.
       permission = "allow";

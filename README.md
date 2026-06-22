@@ -74,10 +74,6 @@ of providers.
 - **Mistral**: run `opencode` and then `/connect` to `Mistral`. Generate an API
   key [here](https://console.mistral.ai/codestral/cli). We recommend the
   `Mistral Medium (latest)` model.
-- **Scaleway**: run `opencode` and then `/connect` to `Scaleway`. The API key
-  [is here](https://vault.bitwarden.com/#/vault?itemId=c9b60efc-e0b3-4a7a-a3d7-b43500d29310)
-  if you work at Magenta. We don't recommend any of these models, as they're
-  all kinda bad, but `qwen3.5-397b-a17b` is probably the best that they offer.
 
 ### 😈 Claude Code
 
