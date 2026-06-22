@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 from uuid import uuid4
 
 # Passed by buildPythonApplication's makeWrapperArgs in flake.nix
+CLANK_CADDY_BIN = os.environ["CLANK_CADDY_BIN"]
 CLANK_EMPTY_DIRECTORY = os.environ["CLANK_EMPTY_DIRECTORY"]
 CLANK_ROOT = os.environ["CLANK_ROOT"]
 
@@ -25,12 +26,18 @@ def main(tmp: Path) -> None:
     # https://github.com/containers/podman/issues/24642.
     subprocess.run(["podman", "unshare", "true"])
 
+    identifier = f"clank-{uuid4()}"
+
+    # Each Clank sandbox is networked with its own credentials proxy
+    subprocess.run(["podman", "network", "create", identifier], check=True)
+
     command = [
         "podman",
         "run",
         "--rm",
         "-it",
-        f"--name=clank-{uuid4()}",
+        f"--name={identifier}",
+        f"--network={identifier}",
         # Kinda yolo, but you need at least `--device=/dev/fuse`, and
         # `--cap-add=SYS_ADMIN,NET_ADMIN,NET_RAW,mknod` to make podman compose
         # work inside the container anyway. Claude tried to break out for like
@@ -70,6 +77,16 @@ def main(tmp: Path) -> None:
             f"--volume={file}:/var/lib/shared:ro",
         ]
 
+    # Custom OpenCode and Claude Code config
+    if (file := home.joinpath(".config/clank/opencode.json")).exists():
+        command += [
+            f"--volume={file}:/root/.config/opencode/opencode.json:ro",
+        ]
+    if (file := home.joinpath(".config/clank/claude.json")).exists():
+        command += [
+            f"--volume={file}:/etc/claude-code/managed-settings.json:ro",
+        ]
+
     # Whatever extra arguments were given on the command line are run in the
     # container, e.g. `clank opencode --model=berget/moonshotai/Kimi-K3`. We
     # have to do it in this roundabout way because the command argument to
@@ -98,6 +115,28 @@ def main(tmp: Path) -> None:
         f"{CLANK_ROOT}/init",
     ]
 
+    # Start the credentials proxy
+    if (file := home.joinpath(".config/clank/Caddyfile")).exists():
+        subprocess.run([CLANK_CADDY_BIN, "validate", "--config", file], check=True)
+        subprocess.run(
+            [
+                "podman",
+                "run",
+                "--rm",
+                "--detach",
+                f"--name={identifier}-proxy",
+                f"--network={identifier}",
+                "--network-alias=clank-proxy",
+                "--volume=/nix/store:/nix/store:ro",
+                f"--volume={file}:/Caddyfile:ro",
+                "--rootfs",
+                f"{CLANK_EMPTY_DIRECTORY}:O",
+                CLANK_CADDY_BIN,
+                "run",
+            ],
+            check=True,
+        )
+
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
@@ -105,3 +144,6 @@ def main(tmp: Path) -> None:
         # powered off.
         if e.returncode not in (0, 130):
             raise
+    finally:
+        # Removing a network using --force also removes any containers using it
+        subprocess.run(["podman", "network", "rm", "--force", identifier], check=True)

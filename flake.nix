@@ -41,6 +41,7 @@
         ];
 
         makeWrapperArgs = builtins.concatLists [
+          ["--set" "CLANK_CADDY_BIN" "${pkgs.caddy}/bin/caddy"]
           ["--set" "CLANK_EMPTY_DIRECTORY" "${pkgs.emptyDirectory}"]
           ["--set" "CLANK_ROOT" self.packages.${system}.container.config.system.build.toplevel]
         ];
