@@ -47,7 +47,7 @@
         pr = "";
       };
       # Default to the best model
-      model = "opus";
+      model = "opus[1m]";
       # yolo
       permissions.defaultMode = "bypassPermissions";
       skipDangerousModePermissionPrompt = true;
