@@ -20,6 +20,11 @@ def cli() -> None:
 
 
 def main(tmp: Path) -> None:
+    # Prime the podman pause process to avoid AppArmor errors due to user
+    # namespace creation. Dumb workaround for
+    # https://github.com/containers/podman/issues/24642.
+    subprocess.run(["podman", "unshare", "true"])
+
     command = [
         "podman",
         "run",
@@ -100,11 +105,6 @@ def main(tmp: Path) -> None:
         f"{CLANK_EMPTY_DIRECTORY}:O",
         f"{CLANK_ROOT}/init",
     ]
-
-    # Prime the podman pause process to avoid AppArmor errors due to user
-    # namespace creation. Dumb workaround for
-    # https://github.com/containers/podman/issues/24642.
-    subprocess.run(["podman", "unshare", "true"])
 
     try:
         subprocess.run(command, check=True)
