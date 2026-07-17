@@ -91,10 +91,16 @@ def main(tmp: Path) -> None:
 
     command += [
         # NixOS just needs an /init and /nix/store to start, so we mount an
-        # empty tmpfs on / and bind mount the host's /nix. /init symlinks the
-        # required files from /nix/store into / and starts systemd.
+        # empty tmpfs on / and bind mount the host's store. /init symlinks the
+        # required files from /nix/store into / and starts systemd. This
+        # mirrors how NixOS containers works, except we are not root on the
+        # host, so we must tmpfs-mount root's profile.
+        # https://github.com/NixOS/nixpkgs/blob/123e240e07c793377ad22ef9c3381a865df10f7c/nixos/modules/virtualisation/nixos-containers.nix#L203-L207
         "--mount=type=tmpfs,tmpfs-size=512M,destination=/",
-        "--volume=/nix:/nix:ro",
+        "--volume=/nix/store:/nix/store:ro",
+        "--volume=/nix/var/nix/db:/nix/var/nix/db:ro",
+        "--volume=/nix/var/nix/daemon-socket:/nix/var/nix/daemon-socket:ro",
+        "--tmpfs=/nix/var/nix/profiles/per-user/root",
         "--systemd=always",
         # Podman won't run without a container image, but `--rootfs` tells it
         # to use the empty directory as container file system instead. Podman
