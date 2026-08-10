@@ -92,35 +92,31 @@ alias clank='nix run github:magenta-aps/clank --'
 
 ### Everything Else
 
-`.config/clank/config/flake.nix`:
+`.config/clank/config.nix`:
 
 ```nix
-{
-  outputs = {...}: {
-    nixosModules.clank = {pkgs, ...}: {
-      home-manager.users.root = {
-        # https://search.nixos.org/options?channel=unstable&query=programs.opencode&source=home_manager
-        programs.opencode = {
-          context = "Call me Alice";
-        };
-        # https://search.nixos.org/options?channel=unstable&query=programs.claude-code&source=home_manager
-        programs.claude-code = {
-          context = "Call me Bob";
-        };
-      };
+{pkgs, ...}: {
+  home-manager.users.root = {
+    # https://search.nixos.org/options?channel=unstable&query=programs.opencode&source=home_manager
+    programs.opencode = {
+      context = "Call me Alice";
+    };
+    # https://search.nixos.org/options?channel=unstable&query=programs.claude-code&source=home_manager
+    programs.claude-code = {
+      context = "Call me Bob";
     };
   };
 }
 ```
 
 ```sh
-nix run github:magenta-aps/clank --override-input config ~/.config/clank/config/
+nix run github:magenta-aps/clank --override-input config "path:$HOME/.config/clank/config.nix"
 ```
 
 or
 
 ```sh
-alias clank='nix run github:magenta-aps/clank --override-input config ~/.config/clank/config/ --'
+alias clank='nix run github:magenta-aps/clank --override-input config "path:$HOME/.config/clank/config.nix" --'
 ```
 
 ### 🔐 Credentials Proxy

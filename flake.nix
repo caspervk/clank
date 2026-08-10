@@ -10,7 +10,8 @@
       inputs.nixpkgs.follows = "nixpkgs"; # use the same nixpkgs
     };
     config = {
-      url = "path:./empty";
+      url = "path:./empty.nix";
+      flake = false;
     };
   };
 
@@ -62,19 +63,19 @@
       #     extraModules = [./my-module.nix];
       #   }
       #
-      # Non-NixOS users could use the same mechanism and define their own
+      # Non-NixOS users *could* use the same mechanism, and define their own
       # flake.nix, but they would have to very vigilant about keeping it
-      # non-dirty to avoid evaluation cache-misses.
+      # non-dirty to avoid evaluation cache-misses. Instead, we (ab)use flake
+      # inputs as parameters. Overriding an input doesn't cause cache-misses.
       #
-      # Overriding a flake input doesn't cause cache-misses, and allows
-      # non-NixOS users to customise using
+      # This allows non-NixOS users to customise using:
       #
-      #   nix run github:magenta-aps/clank --override-input config ~/.config/clank/
+      #   nix run github:magenta-aps/clank --override-input config "path:$HOME/.config/clank/config.nix"
       #
       # https://github.com/NixOS/nix/issues/10437
       # https://github.com/NixOS/nix/issues/5663
       default = nixpkgs.lib.makeOverridable mkClank {
-        extraModules = [config.nixosModules.clank or {}];
+        extraModules = [(import config)];
       };
     });
   };

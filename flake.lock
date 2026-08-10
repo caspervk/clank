@@ -1,12 +1,13 @@
 {
   "nodes": {
     "config": {
+      "flake": false,
       "locked": {
-        "path": "./empty",
+        "path": "./empty.nix",
         "type": "path"
       },
       "original": {
-        "path": "./empty",
+        "path": "./empty.nix",
         "type": "path"
       },
       "parent": []
