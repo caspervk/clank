@@ -4,10 +4,7 @@
   ...
 }: {
   # Cringe
-  nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (pkgs.lib.getName pkg) [
-      "claude-code"
-    ];
+  nixpkgs.config.allowUnfreePackages = ["claude-code"];
 
   environment.systemPackages = [
     (pkgs.claude-code.overrideAttrs (previousAttrs: {
