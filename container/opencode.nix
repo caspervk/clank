@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   vars,
   ...
@@ -10,7 +11,7 @@
   environment.variables = {
     # Enable Exa web search tools
     # https://opencode.ai/docs/tools/#websearch
-    OPENCODE_ENABLE_EXA = "1";
+    OPENCODE_ENABLE_EXA = lib.mkDefault "1";
   };
 
   # https://opencode.ai/docs/config
