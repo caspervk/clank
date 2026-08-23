@@ -5,6 +5,7 @@
     ./nix.nix
     ./opencode.nix
     ./podman.nix
+    ./programs.nix
     ./shell.nix
     ./vars.nix
   ];
