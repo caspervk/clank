@@ -3,16 +3,10 @@
   pkgs,
   ...
 }: {
-  # Stolen from https://git.caspervk.net/caspervk/nixos/src/commit/56ad8f33f998129a980e05dcd29ab45bec084301/modules/podman.nix
+  # Stolen from https://git.caspervk.net/caspervk/nixos/src/commit/ae7f77a06f6d353e9e2227c872c0bb16ff6a9ead/modules/podman.nix
 
   virtualisation.podman = {
     enable = true;
-    defaultNetwork.settings = {
-      # DNS is required for containers under podman-compose to be able to talk
-      # to each other.
-      dns_enabled = true;
-      ipv6_enabled = true;
-    };
     # Create an alias mapping `docker` to `podman`. This does *not* enable the
     # docker-compatible socket (`virtualisation.podman.dockerSocket.enable`),
     # which would allow members of the `podman` group to gain root access.
