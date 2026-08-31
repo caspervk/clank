@@ -96,7 +96,7 @@ def main(tmp: Path) -> None:
         # mirrors how NixOS containers works, except we are not root on the
         # host, so we must tmpfs-mount root's profile.
         # https://github.com/NixOS/nixpkgs/blob/123e240e07c793377ad22ef9c3381a865df10f7c/nixos/modules/virtualisation/nixos-containers.nix#L203-L207
-        "--mount=type=tmpfs,tmpfs-size=512M,destination=/",
+        "--mount=type=tmpfs,tmpfs-size=512M,notmpcopyup,destination=/",
         "--volume=/nix/store:/nix/store:ro",
         "--volume=/nix/var/nix/db:/nix/var/nix/db:ro",
         "--volume=/nix/var/nix/daemon-socket:/nix/var/nix/daemon-socket:ro",
