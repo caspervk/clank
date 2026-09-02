@@ -33,9 +33,11 @@ access to, so maybe don't do it in a directory with sensitive data. Get the
 vibes going by running [`opencode`](https://opencode.ai) or
 [`claude`](https://code.claude.com). See below for more.
 
-## 📦 Install Clank
+## 🔧 Customise Clank
 
 ### NixOS
+
+Add the clank input to your `flake.nix`:
 
 ```nix
 {
@@ -49,23 +51,7 @@ vibes going by running [`opencode`](https://opencode.ai) or
 }
 ```
 
-```nix
-{clank, pkgs, ...}: {
-  environment.systemPackages = [
-    clank.packages.${pkgs.stdenv.hostPlatform.system}.default
-  ];
-}
-```
-
-### Everything Else
-
-```sh
-alias clank='nix run github:magenta-aps/clank --'
-```
-
-## ⚙️ Customising Clank
-
-### NixOS
+Add the `clank` package with overrides:
 
 ```nix
 {inputs, pkgs, ...}: {
@@ -90,33 +76,50 @@ alias clank='nix run github:magenta-aps/clank --'
 }
 ```
 
-### Everything Else
+### Elsewhere
 
-`.config/clank/config.nix`:
+Create a `flake.nix` in an empty directory, e.g. `~/clank/flake.nix`:
 
 ```nix
-{pkgs, ...}: {
-  home-manager.users.root = {
-    # https://search.nixos.org/options?channel=unstable&query=programs.opencode&source=home_manager
-    programs.opencode = {
-      context = "Call me Alice";
+{
+  inputs = {
+    clank = {
+      url = "github:magenta-aps/clank";
     };
-    # https://search.nixos.org/options?channel=unstable&query=programs.claude-code&source=home_manager
-    programs.claude-code = {
-      context = "Call me Bob";
-    };
+  };
+
+  outputs = {...} @ inputs: let
+    nixpkgs = inputs.clank.inputs.nixpkgs;
+    forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
+  in {
+    packages = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      default = inputs.clank.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+        extraModules = [
+          ({pkgs, ...}: {
+            home-manager.users.root = {
+              # https://search.nixos.org/options?channel=unstable&query=programs.opencode&source=home_manager
+              programs.opencode = {
+                context = "Call me Alice";
+              };
+              # https://search.nixos.org/options?channel=unstable&query=programs.claude-code&source=home_manager
+              programs.claude-code = {
+                context = "Call me Bob";
+              };
+            };
+          })
+        ];
+      };
+    });
   };
 }
 ```
 
-```sh
-nix run github:magenta-aps/clank --override-input config "path:$HOME/.config/clank/config.nix"
-```
-
-or
+Run it using
 
 ```sh
-alias clank='nix run github:magenta-aps/clank --override-input config "path:$HOME/.config/clank/config.nix" --'
+nix run ~/clank
 ```
 
 ### 🔐 Credentials Proxy
@@ -144,7 +147,7 @@ providers use a custom SDK, in which case they are documented at
 <https://ai-sdk.dev/providers/ai-sdk-providers>.
 
 ```nix
-{
+{pkgs, ...}: {
   home-manager.users.root = {
     programs.opencode = {
       settings = {
