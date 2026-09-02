@@ -152,31 +152,10 @@ providers use a custom SDK, in which case they are documented at
     programs.opencode = {
       settings = {
         provider = {
-          deepseek = {
-            options = {
-              baseURL = "http://clank-proxy:1600";
-            };
-          };
-          google = {
-            options = {
-              apiKey = "dummy";
-              baseURL = "http://clank-proxy:1601/v1beta";
-            };
-          };
           mistral = {
             options = {
               apiKey = "dummy";
-              baseURL = "http://clank-proxy:1602/v1";
-            };
-          };
-          scaleway = {
-            options = {
-              baseURL = "http://clank-proxy:1603/v1";
-            };
-          };
-          zai = {
-            options = {
-              baseURL = "http://clank-proxy:1604/api/paas/v4";
+              baseURL = "http://clank-proxy:1643/v1";
             };
           };
         };
@@ -200,37 +179,9 @@ credentials.
 `~/.config/clank/Caddyfile`:
 
 ```Caddy
-# API keys are here if you work at Magenta:
-# https://vault.bitwarden.com/#/vault?itemId=c9b60efc-e0b3-4a7a-a3d7-b43500d29310
-
-:1600 {
-	reverse_proxy https://api.deepseek.com {
-		header_up Authorization "Bearer <token>"  # https://platform.deepseek.com/api_keys
-	}
-}
-
-:1601 {
-	reverse_proxy https://generativelanguage.googleapis.com {
-		header_up X-Goog-Api-Key "<token>"
-	}
-}
-
-:1602 {
+:1643 {
 	reverse_proxy https://api.mistral.ai {
 		header_up Authorization "Bearer <token>"  # https://console.mistral.ai/?profile_dialog=api-keys
-	}
-}
-
-:1603 {
-	rewrite * /594a268d-8577-4b86-a983-be375e13e197{uri}  # Magenta's project id
-	reverse_proxy https://api.scaleway.ai {
-		header_up Authorization "Bearer <token>"
-	}
-}
-
-:1604 {
-	reverse_proxy https://api.z.ai {
-		header_up Authorization "Bearer <token>"  # https://z.ai/manage-apikey/apikey-list
 	}
 }
 
