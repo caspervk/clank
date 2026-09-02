@@ -192,6 +192,10 @@ credentials.
 }
 ```
 
+### 🟪 Magenta
+
+See [magenta/](magenta/).
+
 ## 💡 Tips and Tricks
 
 ### OpenCode Web
