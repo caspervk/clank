@@ -51,11 +51,11 @@
   home-manager.users.root.home.file."/root/.claude/settings.json".force = true;
 
   systemd.tmpfiles.rules = let
-    claudeJson = pkgs.writeText "claude.json" (builtins.toJSON {
+    claudeJson = pkgs.writers.writeJSON "claude.json" {
       # Claude Code asks us to log in even though we may be using
       # CLAUDE_CODE_OAUTH_TOKEN.
       hasCompletedOnboarding = true;
-    });
+    };
   in [
     # It's annoying to bind mount and persist a single file, so we symlink
     # /root/.claude.json to the persisted directory instead.
