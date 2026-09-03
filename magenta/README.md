@@ -1,39 +1,10 @@
 # Magenta
 
-Add this to your NixOS configuration or `~/clank/flake.nix`:
+## Configuration
 
-```nix
-{pkgs, ...}: {
-  imports = [
-    "${inputs.clank}/magenta/modules/gitlab.nix"
-    "${inputs.clank}/magenta/modules/grafana-logs.nix"
-    "${inputs.clank}/magenta/modules/kagi.nix"
-  ];
-  home-manager.users.root = {
-    programs.opencode = {
-      settings = {
-        provider = {
-          greenpt = {
-            options = {
-              baseURL = "http://clank-proxy:1689/v1";
-            };
-          };
-        };
-      };
-    };
-    programs.claude-code = {
-      settings = {
-        env = {
-          CLAUDE_CODE_OAUTH_TOKEN = "dummy";
-          ANTHROPIC_BASE_URL = "http://clank-proxy:1666";
-        };
-      };
-    };
-  };
-}
-```
+### 1. Proxy
 
-`~/.config/clank/Caddyfile`:
+`~/.config/clank/Caddyfile`
 
 ```Caddy
 # Providers
@@ -68,4 +39,150 @@ Add this to your NixOS configuration or `~/clank/flake.nix`:
 		header_up Authorization "Basic <base64>"  # `printf 'clank:<token>' | base64 --wrap=0`
 	}
 }
+```
+
+### 2. Clank
+
+#### 2a. NixOS
+
+Add the clank input to your NixOS `flake.nix`:
+
+```nix
+{
+  inputs = {
+    nixpkgs = {
+      url = "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz";
+    };
+    clank = {
+      url = "github:magenta-aps/clank";
+      # inputs.nixpkgs.follows = "nixpkgs-unstable";
+      # inputs.home-manager.follows = "home-manager-unstable";
+    };
+  };
+
+  outputs = {nixpkgs, ...} @ inputs: {
+    nixosConfigurations = {
+      example = nixpkgs.lib.nixosSystem {
+        specialArgs = {inherit inputs;};
+        modules = [
+          ./clank.nix
+        ];
+      };
+    };
+  };
+}
+```
+
+Add the `clank` package to your modules, e.g. `clank.nix`:
+
+```nix
+{
+  inputs,
+  pkgs,
+  ...
+}: {
+  environment.systemPackages = [
+    (inputs.clank.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+      extraModules = [
+        ({...}: {
+          imports = [
+            "${inputs.clank}/magenta/modules/gitlab.nix"
+            "${inputs.clank}/magenta/modules/grafana-logs.nix"
+            "${inputs.clank}/magenta/modules/kagi.nix"
+          ];
+          # https://search.nixos.org/options?channel=unstable&query=programs.opencode&source=home_manager
+          # https://search.nixos.org/options?channel=unstable&query=programs.claude-code&source=home_manager
+          home-manager.users.root = {
+            programs.opencode = {
+              settings = {
+                provider = {
+                  greenpt = {
+                    options = {
+                      baseURL = "http://clank-proxy:1689/v1";
+                    };
+                  };
+                };
+              };
+            };
+            programs.claude-code = {
+              settings = {
+                env = {
+                  CLAUDE_CODE_OAUTH_TOKEN = "dummy";
+                  ANTHROPIC_BASE_URL = "http://clank-proxy:1666";
+                };
+              };
+            };
+          };
+        })
+      ];
+    })
+  ];
+}
+```
+
+`nixos-rebuild` and then run it using `clank`!
+
+#### 2b. Elsewhere
+
+Make sure Nix is installed ([README](../)). Create a `flake.nix` in an empty
+directory, e.g. `~/clank/flake.nix`.
+
+```nix
+{
+  inputs = {
+    clank = {
+      url = "github:magenta-aps/clank";
+    };
+  };
+
+  outputs = {...} @ inputs: let
+    nixpkgs = inputs.clank.inputs.nixpkgs;
+    forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
+  in {
+    packages = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      default = inputs.clank.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+        extraModules = [
+          ({...}: {
+            imports = [
+              "${inputs.clank}/magenta/modules/gitlab.nix"
+              "${inputs.clank}/magenta/modules/grafana-logs.nix"
+              "${inputs.clank}/magenta/modules/kagi.nix"
+            ];
+            # https://search.nixos.org/options?channel=unstable&query=programs.opencode&source=home_manager
+            # https://search.nixos.org/options?channel=unstable&query=programs.claude-code&source=home_manager
+            home-manager.users.root = {
+              programs.opencode = {
+                settings = {
+                  provider = {
+                    greenpt = {
+                      options = {
+                        baseURL = "http://clank-proxy:1689/v1";
+                      };
+                    };
+                  };
+                };
+              };
+              programs.claude-code = {
+                settings = {
+                  env = {
+                    CLAUDE_CODE_OAUTH_TOKEN = "dummy";
+                    ANTHROPIC_BASE_URL = "http://clank-proxy:1666";
+                  };
+                };
+              };
+            };
+          })
+        ];
+      };
+    });
+  };
+}
+```
+
+Run it using
+
+```sh
+nix run ~/clank
 ```
